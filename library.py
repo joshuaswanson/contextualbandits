@@ -42,7 +42,7 @@ class TopTwoAlgorithm(object):
             errs.append(np.linalg.norm(self.theta - self.theta_star))
             
             if t%logging_period == 0:
-                # print('run', self.name, 'iter', t,'\n')
+                print('toptwo run', self.name, 'iter', t,'\n')
                 self.arm_sequence.append(np.argmax(self.X @ self.theta))
                 if verbose: 
                     plt.xlabel('iteration')
@@ -62,9 +62,6 @@ class TopTwoAlgorithm(object):
             count += (idx == np.argmax(X@theta))
         return count / repeat
 
-#     @staticmethod
-#     def gap(self, x, x_star=self.x_star):
-#         return (x_star - x) @ theta_star
 
 
 def A(X, lambda_):
@@ -92,15 +89,13 @@ class ThompsonSampling(object):
             best_idx = np.argmax(self.X @ theta_hat)
             x_n = self.X[best_idx]
             y_n = x_n @ self.theta_star + self.sigma*np.random.randn()
-            
             self.V += np.outer(x_n, x_n)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S         
-            
             errs.append(np.linalg.norm(theta - self.theta_star))
             
             if t%logging_period == 0:
-                # print('run', self.name, 'iter', t,'\n')
+                print('ts run', self.name, 'iter', t,'\n')
                 self.arm_sequence.append(np.argmax(self.X@theta))
                 if verbose: 
                     plt.xlabel('iteration')
@@ -125,10 +120,18 @@ class XYStatic(object):
         
         
     def run(self, logging_period=1):
-        lam_f = XYStatic.frank_wolfe(self.X, self.Y, self.grad_f)
-        self.arm_sequence = np.random.choice(self.n, self.T, p=lam_f)
-    
-
+        lam_f,_,_ = FW(self.X, self.Y)
+        S = 0
+        for t in range(self.T):
+            idx = np.random.choice(self.n, p=lam_f)
+            x_n = self.X[idx]
+            y_n = x_n @ self.theta_star + self.sigma*np.random.randn()
+            self.V += np.outer(x_n, x_n)
+            S += x_n * y_n
+            theta = np.linalg.inv(self.V) @ S         
+            if t%logging_period == 0:
+                print('ts run', self.name, 'iter', t,'\n')
+                self.arm_sequence.append(np.argmax(self.X@theta))
     
     @staticmethod
     def compute_Y(X):
@@ -160,8 +163,10 @@ class XYAdaptive(object):
     def run(self, logging_period=1):
         S = 0
         for t in range(self.T):
-            theta_mat = np.random.multivariate_normal(mean=self.theta, cov=self.V, size=self.k)
-            max_x_vec = np.argmax(self.X @ theta_mat.transpose(), axis=0)  # this should be dimension k
+            theta_mat = np.random.multivariate_normal(mean=self.theta, 
+                                                      cov=self.V, size=self.k)
+            max_x_vec = np.argmax(self.X @ theta_mat.transpose(), 
+                                  axis=0)  # this should be dimension k
             
             X_t = self.X[max_x_vec]
             Y_t = XYStatic.compute_Y(X_t)
@@ -178,4 +183,38 @@ class XYAdaptive(object):
             if t%logging_period == 0:
                 self.arm_sequence.append(np.argmax(self.X @ self.theta))
 
+
+def FW(X, Y, reg_l2=0, iters=10000, 
+       step_size=0.01, viz_step = 10000, 
+       initial=None):
+    n = X.shape[0]
+    d = X.shape[1]
+    I = np.eye(n)
+    if initial is not None:
+        design = initial
+    else:
+        design = np.ones(n)
+        design /= design.sum()  
+    eta = step_size
+    grad_norms = []
+    history = []
+    
+    for count in range(1, iters):
+        A_inv = np.linalg.pinv(X.T@np.diag(design)@X + reg_l2*np.eye(d))        
+        rho = np.diag(Y@A_inv@Y.T)
+        y_opt = Y[np.argmax(rho),:]
+        g = y_opt @ A_inv @ X.T
+        g = -g * g
+        
+        eta = step_size/(count+2)
+        imin = np.argmin(g)
+        design = (1-eta)*design+eta*I[imin]
+        grad_norms.append(np.linalg.norm(g - np.sum(g)/n*np.ones(n)))
+        if count % (viz_step) == 0:
+            history.append(np.max(rho))
+            fig, ax = plt.subplots(1,2)
+            ax[0].plot(grad_norms)
+            ax[1].plot(design)
             
+            plt.show()
+    return design, rho, history
