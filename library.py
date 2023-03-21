@@ -40,10 +40,10 @@ class TopTwoAlgorithm(object):
             self.theta = np.linalg.inv(self.V) @ S
             
             errs.append(np.linalg.norm(self.theta - self.theta_star))
-            
+            self.arm_sequence.append(np.argmax(self.X @ self.theta))
+
             if t%logging_period == 0:
                 print('toptwo run', self.name, 'iter', t,'\n')
-                self.arm_sequence.append(np.argmax(self.X @ self.theta))
                 if verbose: 
                     plt.xlabel('iteration')
                     plt.ylabel(r'$\|\theta_*-\hat{\theta}\|$', rotation=0, labelpad=30)
@@ -93,10 +93,10 @@ class ThompsonSampling(object):
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S         
             errs.append(np.linalg.norm(theta - self.theta_star))
-            
+            self.arm_sequence.append(np.argmax(self.X@theta))
+
             if t%logging_period == 0:
                 print('ts run', self.name, 'iter', t,'\n')
-                self.arm_sequence.append(np.argmax(self.X@theta))
                 if verbose: 
                     plt.xlabel('iteration')
                     plt.ylabel(r'$\|\theta_*-\hat{\theta}\|$', rotation=0, labelpad=30)
@@ -128,10 +128,11 @@ class XYStatic(object):
             y_n = x_n @ self.theta_star + self.sigma*np.random.randn()
             self.V += np.outer(x_n, x_n)
             S += x_n * y_n
-            theta = np.linalg.inv(self.V) @ S         
+            theta = np.linalg.inv(self.V) @ S 
+            self.arm_sequence.append(np.argmax(self.X@theta))        
             if t%logging_period == 0:
                 print('ts run', self.name, 'iter', t,'\n')
-                self.arm_sequence.append(np.argmax(self.X@theta))
+                
     
     @staticmethod
     def compute_Y(X):
@@ -185,7 +186,7 @@ class XYAdaptive(object):
 
 
 def FW(X, Y, reg_l2=0, iters=10000, 
-       step_size=0.01, viz_step = 10000, 
+       step_size=1, viz_step = 10000, 
        initial=None):
     n = X.shape[0]
     d = X.shape[1]

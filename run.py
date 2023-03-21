@@ -32,7 +32,7 @@ if __name__=='__main__':
     theta_star = np.random.randn(d)  # 
     idx_star = np.argmax(X@theta_star)  # index of best arm
     
-    pool = mp.Pool(40)
+    pool = mp.Pool(5)
     
     algorithms = [library.TopTwoAlgorithm, 
                   library.ThompsonSampling,
