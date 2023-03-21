@@ -1,3 +1,5 @@
+import numpy as np
+
 def calc_max_mat_norm(Y, A_inv):
     n = Y.shape[0]
     res = np.zeros(n)
