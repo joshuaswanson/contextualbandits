@@ -34,49 +34,57 @@ if __name__=='__main__':
     
     pool = mp.Pool(5)
     
-    algorithms = [library.TopTwoAlgorithm, 
-                  library.ThompsonSampling,
-                  library.XYStatic] 
-                  #library.XYAdaptive]
+    algorithms = [
+        library.XYAdaptive,
+        library.TopTwoAlgorithm, 
+        library.ThompsonSampling,
+        library.XYStatic
+    ] 
+    
+    xaxis = np.arange(T)
     
     for algorithm in algorithms:
+        
         args = [(algorithm, X, theta_star, T, 1, i) for i in range(reps)]
         results = pool.starmap(worker, args)
-        m1 = (results == idx_star).mean(axis=0)
+        m = (results == idx_star).mean(axis=0)
+        s = (results == idx_star).std(axis=0)/np.sqrt(reps)
+        plt.plot(xaxis, m)
+        plt.fill_between(xaxis, m - 1.96 * s1, m + 1.96 * s, alpha=0.2, label=algorithm.__class__.__name__)
     
-    args1 = [(library.TopTwoAlgorithm, X, theta_star, T, 1, i) for i in range(reps)]
-    args2 = [(library.ThompsonSampling, X, theta_star, T, 1, i) for i in range(reps)]
-    args3 = [(library.XYStatic, X, theta_star, T, 1, i) for i in range(reps)]
-    #args4 = [(library.XYAdaptive, X, theta_star, T, 1, i) for i in range(reps)]
+#     args1 = [(library.TopTwoAlgorithm, X, theta_star, T, 1, i) for i in range(reps)]
+#     args2 = [(library.ThompsonSampling, X, theta_star, T, 1, i) for i in range(reps)]
+#     args3 = [(library.XYStatic, X, theta_star, T, 1, i) for i in range(reps)]
+#     args4 = [(library.XYAdaptive, X, theta_star, T, 1, i) for i in range(reps)]
     
-    results1 = pool.starmap(worker, args1)
-    results2 = pool.starmap(worker, args2)
-    results3 = pool.starmap(worker, args3)
-    #results4 = pool.starmap(worker, args4)
+#     results1 = pool.starmap(worker, args1)
+#     results2 = pool.starmap(worker, args2)
+#     results3 = pool.starmap(worker, args3)
+#     results4 = pool.starmap(worker, args4)
     
-    m1 = (results1 == idx_star).mean(axis=0)
-    m2 = (results2 == idx_star).mean(axis=0)
-    m3 = (results3 == idx_star).mean(axis=0)
-    #m4 = (results4 == idx_star).mean(axis=0)
+#     m1 = (results1 == idx_star).mean(axis=0)
+#     m2 = (results2 == idx_star).mean(axis=0)
+#     m3 = (results3 == idx_star).mean(axis=0)
+#     m4 = (results4 == idx_star).mean(axis=0)
     
-    s1 = (results1 == idx_star).std(axis=0)/np.sqrt(reps)
-    s2 = (results2 == idx_star).std(axis=0)/np.sqrt(reps)
-    s3 = (results3 == idx_star).std(axis=0)/np.sqrt(reps)
-    #s4 = (results4 == idx_star).std(axis=0)/np.sqrt(reps)
+#     s1 = (results1 == idx_star).std(axis=0)/np.sqrt(reps)
+#     s2 = (results2 == idx_star).std(axis=0)/np.sqrt(reps)
+#     s3 = (results3 == idx_star).std(axis=0)/np.sqrt(reps)
+#     s4 = (results4 == idx_star).std(axis=0)/np.sqrt(reps)
     
-    xaxis = np.arange(len(m1))
+#     xaxis = np.arange(len(m1))
 
-    plt.plot(xaxis, m1)
-    plt.fill_between(xaxis, m1 - 1.96 * s1, m1 + 1.96 * s1,
-                     color='blue', alpha=0.2, label='Top two posterior')
+#     plt.plot(xaxis, m1)
+#     plt.fill_between(xaxis, m1 - 1.96 * s1, m1 + 1.96 * s1,
+#                      color='blue', alpha=0.2, label='Top two posterior')
     
-    plt.plot(xaxis, m2)
-    plt.fill_between(xaxis, m2 - 1.96 * s2, m2 + 1.96 * s2,
-                     color='orange', alpha=0.2, label='Thompson sampling')
+#     plt.plot(xaxis, m2)
+#     plt.fill_between(xaxis, m2 - 1.96 * s2, m2 + 1.96 * s2,
+#                      color='orange', alpha=0.2, label='Thompson sampling')
     
-    plt.plot(xaxis, m3)
-    plt.fill_between(xaxis, m3 - 1.96 * s3, m3 + 1.96 * s3,
-                     color='green', alpha=0.2, label='XY static')
+#     plt.plot(xaxis, m3)
+#     plt.fill_between(xaxis, m3 - 1.96 * s3, m3 + 1.96 * s3,
+#                      color='green', alpha=0.2, label='XY static')
     
 #     plt.plot(xaxis, m4)
 #     plt.fill_between(xaxis, m4 - 1.96 * s4, m4 + 1.96 * s4,

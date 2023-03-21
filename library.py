@@ -148,7 +148,7 @@ class XYAdaptive(object):
     def __init__(self, X, theta_star, T, sigma=1, name=""):
         self.X = X
         self.d = X.shape[1]
-        self.theta = np.zeros(self.d)
+        #self.theta = np.zeros(self.d)
         self.sigma = sigma
         self.arm_sequence = []
         self.V = np.eye(self.d)
@@ -163,33 +163,37 @@ class XYAdaptive(object):
         
     def run(self, logging_period=1):
         S = 0
+        theta = np.zeros(self.d)
         for t in range(self.T):
-            theta_mat = np.random.multivariate_normal(mean=self.theta, 
+            theta_mat = np.random.multivariate_normal(mean=theta, 
                                                       cov=self.V, size=self.k)
             max_x_vec = np.argmax(self.X @ theta_mat.transpose(), 
                                   axis=0)  # this should be dimension k
             
             X_t = self.X[max_x_vec]
-            Y_t = XYStatic.compute_Y(X_t)
-            lam_f = XYStatic.frank_wolfe(X_t, Y_t, XYStatic.grad_f)
-            ind_n = np.random.choice(X_t.shape[0], 1, p=lam_f)
+            Y_t = XYStatic.compute_Y(X_t) #TODO: refactor this into utils.py
             
-            x_n = X_t[ind_n][0]
+            lam_f, _, _ = FW(X_t, Y_t)
+            
+            ind_n = np.random.choice(X_t.shape[0], p=lam_f)
+            
+            x_n = X_t[ind_n]
             y_n = x_n @ self.theta_star + self.sigma * np.random.randn()
             
             self.V += np.outer(x_n, x_n)
             S += x_n * y_n
-            self.theta = np.linalg.inv(self.V) @ S
+            theta = np.linalg.inv(self.V) @ S
+            self.arm_sequence.append(np.argmax(self.X @ theta))
             
             if t%logging_period == 0:
-                self.arm_sequence.append(np.argmax(self.X @ self.theta))
+                print('xy adaptive run', self.name, 'iter', t,'\n')
+                #self.arm_sequence.append(np.argmax(self.X @ theta))
 
 
 def FW(X, Y, reg_l2=0, iters=10000, 
        step_size=1, viz_step = 10000, 
        initial=None):
-    n = X.shape[0]
-    d = X.shape[1]
+    n, d = X.shape
     I = np.eye(n)
     if initial is not None:
         design = initial
