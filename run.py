@@ -25,7 +25,7 @@ if __name__=='__main__':
     T = args.T  # time steps
     reps = args.reps  # repetitions of the algorithm
     
-    d = 10  # dimension of arms
+    d = 6  # dimension of arms
     K = 100  # number of arms
     X = np.random.randn(K, d)  # arms
     
