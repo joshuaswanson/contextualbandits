@@ -7,8 +7,8 @@ from utils import *
 
 class ThompsonSampling(Linear):
 
-    def __init__(self, X, theta_star, T, sigma, name):
-        super().__init__(X, theta_star, T, sigma, name)
+    def __init__(self, X, Y, theta_star, T, sigma, name):
+        super().__init__(X, Y, theta_star, T, sigma, name)
         self.B = np.matmul(X.reshape(-1,self.d,1), X.reshape(-1,1,self.d))
     
     def run(self, logging_period=1):
@@ -29,8 +29,8 @@ class ThompsonSampling(Linear):
 
 class TopTwoAlgorithm(Linear):
         
-    def __init__(self, X, theta_star, T, sigma, name):
-        super().__init__(X, theta_star, T, sigma, name)
+    def __init__(self, X, Y, theta_star, T, sigma, name):
+        super().__init__(X, Y, theta_star, T, sigma, name)
         self.B = np.matmul(X.reshape(-1,self.d,1), X.reshape(-1,1,self.d))
         
     def run(self, logging_period=1):
@@ -64,9 +64,9 @@ class TopTwoAlgorithm(Linear):
                     
 class XYStatic(Linear):
     
-    def __init__(self, X, theta_star, T, sigma, name):
-        super().__init__(X, theta_star, T, sigma, name)
-        self.Y = compute_Y(X)
+    def __init__(self, X, Y, theta_star, T, sigma, name):
+        super().__init__(X, Y, theta_star, T, sigma, name)
+        #self.Y = compute_Y(X)
         
         
     def run(self, logging_period=1):
@@ -87,10 +87,10 @@ class XYStatic(Linear):
     
 class XYAdaptive(Linear):
     
-    def __init__(self, X, theta_star, T, sigma, name):
-        super().__init__(X, theta_star, T, sigma, name)
+    def __init__(self, X, Y, theta_star, T, sigma, name):
+        super().__init__(X, Y, theta_star, T, sigma, name)
         self.k = 5
-        self.Y = compute_Y(X)
+        #self.Y = compute_Y(X)
         # self.k = k #TODO: add this later
 
     def run(self, logging_period=1):
