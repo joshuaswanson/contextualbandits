@@ -59,8 +59,8 @@ if __name__=='__main__':
     algorithms = [
         'ThompsonSampling',
         'TopTwoAlgorithm',
-        'XYStatic'
-        #library.XYAdaptive
+        'XYStatic',
+        'XYAdaptive'
     ]
      
     xaxis = np.arange(T)
