@@ -13,7 +13,13 @@ def calc_max_mat_norm(Y, A_inv):
     return res[ind], ind
 
 def compute_Y(X):
-    return np.concatenate([X[i]-X[i+1:] for i in range(X.shape[0]-1)], axis=0)
+#     return np.concatenate([X[i]-X[i+1:] for i in range(X.shape[0]-1)], axis=0)
+    n = X.shape[0]
+    Y = []
+    for i in range(n-1):
+        for j in range(i+1, n):
+            Y.append(X[i] - X[j])
+    return np.array(Y)
 
 def FW(X, Y, reg_l2=0, iters=500, 
        step_size=1, viz_step = 10000, 

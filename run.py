@@ -32,11 +32,11 @@ if __name__=='__main__':
     theta_star = np.random.randn(d)  # unknown parameters of linear model
     idx_star = np.argmax(X @ theta_star)  # index of best arm
     
-    pool = mp.Pool(5)
+    pool = mp.Pool(10)
     
     algorithms = [
         library.ThompsonSampling,
-        #library.TopTwoAlgorithm,
+        library.TopTwoAlgorithm,
         library.XYStatic,
         library.XYAdaptive
     ] 
