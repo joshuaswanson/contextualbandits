@@ -160,7 +160,6 @@ class XYAdaptive(object):
         # self.k = k #TODO: add this later
         
         
-        
     def run(self, logging_period=1):
         S = 0
         for t in range(self.T):

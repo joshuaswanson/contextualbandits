@@ -19,20 +19,22 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--T', type=int)
     parser.add_argument('--reps', type=int)
+    parser.add_argument('--pool', default=10, type=int)
     args = parser.parse_args()
     
     
     T = args.T  # time steps
     reps = args.reps  # repetitions of the algorithm
+    pool = args.pool
     
     d = 6  # dimension of arms
-    K = 100  # number of arms
+    K = 20  # number of arms
     X = np.random.randn(K, d)  # arms
     
     theta_star = np.random.randn(d)  # 
     idx_star = np.argmax(X@theta_star)  # index of best arm
     
-    pool = mp.Pool(5)
+    pool = mp.Pool(pool)
     
     algorithms = [library.TopTwoAlgorithm, 
                   library.ThompsonSampling,
