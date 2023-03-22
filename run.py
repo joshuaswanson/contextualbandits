@@ -12,7 +12,7 @@ def worker(algorithm, X, theta_star, T, sigma, name):
     np.random.seed()
     algorithm_instance = algorithm(X, theta_star, T, sigma, name)
     algorithm_instance.run(logging_period=1)
-    return algorithm_instance.arm_sequence
+    return algorithm_instance.arms_chosen
 
 
 if __name__=='__main__':
@@ -29,28 +29,27 @@ if __name__=='__main__':
     K = 100  # number of arms
     X = np.random.randn(K, d)  # arms
     
-    theta_star = np.random.randn(d)  # 
-    idx_star = np.argmax(X@theta_star)  # index of best arm
+    theta_star = np.random.randn(d)  # unknown parameters of linear model
+    idx_star = np.argmax(X @ theta_star)  # index of best arm
     
     pool = mp.Pool(5)
     
     algorithms = [
-        library.XYAdaptive,
-        library.TopTwoAlgorithm, 
         library.ThompsonSampling,
-        library.XYStatic
+        #library.TopTwoAlgorithm,
+        library.XYStatic,
+        library.XYAdaptive
     ] 
     
     xaxis = np.arange(T)
     
     for algorithm in algorithms:
-        
         args = [(algorithm, X, theta_star, T, 1, i) for i in range(reps)]
         results = pool.starmap(worker, args)
         m = (results == idx_star).mean(axis=0)
         s = (results == idx_star).std(axis=0)/np.sqrt(reps)
         plt.plot(xaxis, m)
-        plt.fill_between(xaxis, m - 1.96 * s1, m + 1.96 * s, alpha=0.2, label=algorithm.__class__.__name__)
+        plt.fill_between(xaxis, m - 1.96 * s, m + 1.96 * s, alpha=0.2, label=type(algorithm).__name__)
     
 #     args1 = [(library.TopTwoAlgorithm, X, theta_star, T, 1, i) for i in range(reps)]
 #     args2 = [(library.ThompsonSampling, X, theta_star, T, 1, i) for i in range(reps)]
