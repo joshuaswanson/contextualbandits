@@ -3,7 +3,8 @@ import numpy as np
 from IPython.display import clear_output
 import multiprocessing as mp
 from instance import Linear
-from utils import *
+import utils
+import distribution
 
 class ThompsonSampling(Linear):
 
