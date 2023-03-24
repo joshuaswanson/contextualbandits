@@ -49,7 +49,7 @@ if __name__=='__main__':
     K = 500
     d = 20
     # X, theta_star = sphere(K, d)
-    X, theta_star = soare(d)
+    X, theta_star = soare(d, 0.3)
     idx_star = np.argmax(X @ theta_star)  # index of best arm
     Y = utils.compute_Y(X)
     
@@ -77,7 +77,7 @@ if __name__=='__main__':
         m = (results == idx_star).mean(axis=0)
         s = (results == idx_star).std(axis=0)/np.sqrt(reps)
         plt.plot(xaxis, m)
-        plt.fill_between(xaxis, m - 1.96 * s, m + 1.96 * s, alpha=0.2, label=algorithm)
+        plt.fill_between(xaxis, m - s, m + s, alpha=0.2, label=algorithm)
 
     
     plt.xlabel('time')
