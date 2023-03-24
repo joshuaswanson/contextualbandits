@@ -10,7 +10,7 @@ import multiprocessing as mp
 import library
 from importlib import reload
 import argparse
-from settings import *
+from instance import *
 import utils
 
 reload(library)
@@ -49,7 +49,7 @@ if __name__=='__main__':
     K = 500
     d = 20
     # X, theta_star = sphere(K, d)
-    X, theta_star = soare(d, 0.3)
+    X, theta_star = soare(d, np.arccos(1/np.sqrt(d)))
     idx_star = np.argmax(X @ theta_star)  # index of best arm
     Y = utils.compute_Y(X)
     
@@ -84,4 +84,5 @@ if __name__=='__main__':
     plt.ylabel('identification rate')
     plt.title(f'K {K} d {d}')
     plt.legend()
+    plt.caption
     plt.savefig('results.png')
