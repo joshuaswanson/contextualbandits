@@ -47,8 +47,9 @@ if __name__=='__main__':
     cpu = args.cpu
     
     K = 500
-    d = 6
-    X,theta_star = sphere(K, d)
+    d = 20
+    # X, theta_star = sphere(K, d)
+    X, theta_star = soare(d)
     idx_star = np.argmax(X @ theta_star)  # index of best arm
     Y = utils.compute_Y(X)
     
@@ -59,8 +60,8 @@ if __name__=='__main__':
     algorithms = [
         'ThompsonSampling',
         'TopTwoAlgorithm',
-        'XYStatic'
-        #library.XYAdaptive
+        'XYStatic',
+        'XYAdaptive'
     ]
      
     xaxis = np.arange(T)
