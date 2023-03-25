@@ -1,17 +1,24 @@
 import numpy as np
 
-class Linear():
-    
-    def __init__(self, X, Y, theta_star, T, sigma=1, name=""):
-        
-        self.X = X
-        self.Y = Y
-        self.n, self.d = X.shape
-        self.theta_star = theta_star
-        
-        self.V = np.eye(self.d)
+def sphere(K,d):
+    '''
+    K: arms
+    d: dimensions
+    '''
+    X = np.random.randn(K, d)/np.sqrt(d)  # arms
+    norms = np.linalg.norm(X, axis=1).reshape(K, 1)
+    X /= norms
+    theta_star = np.random.randn(d)
+    theta_star = theta_star/np.linalg.norm(theta_star)
+    return X, theta_star
 
-        self.T = T  # time steps
-        self.sigma = sigma
-        self.name = name
-        self.arms_chosen = []
+def soare(d, alpha):
+    '''    
+    d: dimensions
+    alpha: angle
+    '''
+    X = np.eye(d)
+    e_1, e_2 = X[:2]
+    x_prime = np.cos(alpha) * e_1 + np.sin(alpha) * e_2
+    X = np.concatenate([X, np.array([x_prime])])
+    return X, 2 * e_1

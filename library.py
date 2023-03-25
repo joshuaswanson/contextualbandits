@@ -2,8 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import clear_output
 import multiprocessing as mp
-from instance import Linear
+from bandit_type import Linear
 from utils import *
+import distribution
 
 class ThompsonSampling(Linear):
 

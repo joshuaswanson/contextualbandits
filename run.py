@@ -10,7 +10,7 @@ import multiprocessing as mp
 import library
 from importlib import reload
 import argparse
-from settings import *
+from instance import *
 import utils
 import ray
 
@@ -49,7 +49,6 @@ if __name__=='__main__':
     reps = args.reps  # repetitions of the algorithm
     cpu = args.cpu
     
-    
     d = 20
     X,theta_star = soare(d, alpha=1/np.sqrt(d))
     K = X.shape[0]
@@ -82,8 +81,7 @@ if __name__=='__main__':
         m = (results == idx_star).mean(axis=0)
         s = (results == idx_star).std(axis=0)/np.sqrt(reps)
         plt.plot(xaxis, m)
-        plt.fill_between(xaxis, m - 1.96 * s, 
-                         m + 1.96 * s, alpha=0.2, label=algorithm)
+        plt.fill_between(xaxis, m - s, m + s, alpha=0.2, label=algorithm)
 
     
     plt.xlabel('time')
