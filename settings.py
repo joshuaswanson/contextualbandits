@@ -8,9 +8,9 @@ def sphere(K,d):
     theta_star = theta_star/np.linalg.norm(theta_star)
     return X, theta_star
 
-def soare(d):
+def soare(d, alpha):
     X = np.eye(d)
     e_1, e_2 = X[:2]
-    x_prime = np.cos(.01) * e_1 + np.sin(.01) * e_2
+    x_prime = np.cos(alpha) * e_1 + np.sin(alpha) * e_2
     X = np.concatenate([X, np.array([x_prime])])
-    return X, 2 * e_1
+    return X, e_1

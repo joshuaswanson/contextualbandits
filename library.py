@@ -93,21 +93,25 @@ class XYAdaptive(Linear):
         #self.Y = compute_Y(X)
         # self.k = k #TODO: add this later
 
-    def run(self, logging_period=1):
+    def run(self, logging_period=1, FW_verbose=False, FW_logging_period=100):
         S = 0
+        lam_f = np.ones(self.n)/self.n
         theta = np.zeros(self.d)
         for t in range(self.T):
-            theta_mat = np.random.multivariate_normal(mean=theta, cov=self.V, size=self.k)
-            max_x_vec = np.argmax(self.X @ theta_mat.transpose(), axis=0)  # this should be dimension k
+            theta_mat = np.random.multivariate_normal(mean=theta, 
+                                                      cov=self.V, size=self.k)
+            max_x_vec = np.argmax(self.X @ theta_mat.transpose(), axis=0)  
+            # this should be dimension k
             
             X_t = self.X[max_x_vec]
             Y_t = compute_Y(X_t)
+            lam_f, _, _ = FW(self.X, Y_t, initial=lam_f, 
+                             iters=20, step_size=1, 
+                             logging_step=FW_logging_period, verbose=FW_verbose)
             
-            lam_f, _, _ = FW(X_t, Y_t)
+            ind_n = np.random.choice(self.X.shape[0], p=lam_f)
             
-            ind_n = np.random.choice(X_t.shape[0], p=lam_f)
-            
-            x_n = X_t[ind_n]
+            x_n = self.X[ind_n]
             y_n = x_n @ self.theta_star + self.sigma * np.random.randn()
             
             self.V += np.outer(x_n, x_n)

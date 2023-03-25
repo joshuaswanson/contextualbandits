@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 def A(X, lambda_):
     return X.T @ np.diag(lambda_) @ X
@@ -22,8 +23,8 @@ def compute_Y(X):
     return np.array(Y)
 
 def FW(X, Y, reg_l2=0, iters=500, 
-       step_size=1, viz_step = 10000, 
-       initial=None):
+       step_size=1, logging_step = 10000,
+       verbose=False, initial=None):
     n, d = X.shape
     I = np.eye(n)
     if initial is not None:
@@ -34,10 +35,12 @@ def FW(X, Y, reg_l2=0, iters=500,
     eta = step_size
     grad_norms = []
     history = []
+    
     for count in range(1, iters):
         A_inv = np.linalg.pinv(X.T@np.diag(design)@X + reg_l2*np.eye(d))        
         #rho = np.array([y.T@A_inv@y for y in Y])
-        rho = np.matmul(np.matmul(Y.reshape(-1, 1,d), A_inv), Y.reshape(-1, d,1)).reshape(Y.shape[0],)
+        rho = np.matmul(np.matmul(Y.reshape(-1, 1,d), A_inv), 
+                        Y.reshape(-1, d,1)).reshape(Y.shape[0],)
         y_opt = Y[np.argmax(rho),:]
         g = y_opt @ A_inv @ X.T
         g = -g * g
@@ -47,7 +50,7 @@ def FW(X, Y, reg_l2=0, iters=500,
         design = (1-eta)*design+eta*I[imin]
         grad_norms.append(np.linalg.norm(g - np.sum(g)/n*np.ones(n)))
         
-        if count % (viz_step) == 0:
+        if verbose and count % (logging_step) == 0:
             history.append(np.max(rho))
             fig, ax = plt.subplots(1,2)
             ax[0].plot(grad_norms)
