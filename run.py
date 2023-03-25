@@ -46,7 +46,7 @@ if __name__=='__main__':
     reps = args.reps  # repetitions of the algorithm
     cpu = args.cpu
     
-    K = 500
+    K = 5000
     d = 20
     # X, theta_star = sphere(K, d)
     X, theta_star = soare(d, np.arccos(1/np.sqrt(d)))
@@ -84,5 +84,4 @@ if __name__=='__main__':
     plt.ylabel('identification rate')
     plt.title(f'K {K} d {d}')
     plt.legend()
-    plt.caption
     plt.savefig('results.png')
