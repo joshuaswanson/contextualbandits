@@ -11,16 +11,18 @@ class ThompsonSampling(Linear):
     def __init__(self, X, Y, theta_star, T, sigma, name):
         super().__init__(X, Y, theta_star, T, sigma, name)
         self.B = np.matmul(X.reshape(-1,self.d,1), X.reshape(-1,1,self.d))
-    
+        self.Vinv = np.linalg.inv(self.V)
+
     def run(self, logging_period=1):
         theta = np.zeros(self.d)
         S = 0
         for t in range(self.T):
-            theta_hat = np.random.multivariate_normal(theta, np.linalg.inv(self.V))
+            theta_hat = np.random.multivariate_normal(theta, self.Vinv)
             best_idx = np.argmax(self.X @ theta_hat)
             x_n = self.X[best_idx]
             y_n = x_n @ self.theta_star + self.sigma*np.random.randn()
             self.V += np.outer(x_n, x_n)
+            self.Vinv = np.linalg.inv(self.V)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S
             self.arms_chosen.append(np.argmax(self.X @ theta))
@@ -33,30 +35,37 @@ class TopTwoAlgorithm(Linear):
     def __init__(self, X, Y, theta_star, T, sigma, name):
         super().__init__(X, Y, theta_star, T, sigma, name)
         self.B = np.matmul(X.reshape(-1,self.d,1), X.reshape(-1,1,self.d))
+        self.Vinv = np.linalg.inv(self.V)
+        self.toptwo = []
+        self.pulled = []
         
     def run(self, logging_period=1):
         theta = np.zeros(self.d)
         S = 0
         
         for t in range(self.T):
-            theta_1 = np.random.multivariate_normal(theta, self.V)
+            theta_1 = np.random.multivariate_normal(theta, self.Vinv)
             best_idx = np.argmax(self.X @ theta_1)
             x_1 = self.X[best_idx]
             
             best_idx_2 = best_idx
             while best_idx == best_idx_2:
-                theta_2 = np.random.multivariate_normal(theta, self.V)
+                theta_2 = np.random.multivariate_normal(theta, self.Vinv)
                 best_idx_2 = np.argmax(self.X@theta_2)
                 x_2 = self.X[best_idx_2]
+            self.toptwo.append([best_idx, best_idx_2])
+            
 
             min_idx = np.argmin((x_1 - x_2) @ np.linalg.inv(self.V + self.B) @ (x_1 - x_2))
+            self.pulled.append(min_idx)
             x_n = self.X[min_idx]
             y_n = self.theta_star @ x_n + self.sigma * np.random.randn()
 
             self.V += np.outer(x_n, x_n)
+            self.Vinv = np.linalg.inv(self.V)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S
-            
+            self.theta = theta
             self.arms_chosen.append(np.argmax(self.X @ theta))
 
             if t%logging_period == 0:
