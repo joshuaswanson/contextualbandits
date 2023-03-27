@@ -38,6 +38,7 @@ class TopTwoAlgorithm(Linear):
         self.Vinv = np.linalg.inv(self.V)
         self.toptwo = []
         self.pulled = []
+        self.k = 10
         
     def run(self, logging_period=1):
         theta = np.zeros(self.d)
@@ -47,12 +48,22 @@ class TopTwoAlgorithm(Linear):
             theta_1 = np.random.multivariate_normal(theta, self.Vinv)
             best_idx = np.argmax(self.X @ theta_1)
             x_1 = self.X[best_idx]
-            
-            best_idx_2 = best_idx
+
+            # try it for a first time
+            theta_2 = np.random.multivariate_normal(theta, self.Vinv)
+            best_idx_2 = np.argmax(self.X@theta_2)
+
             while best_idx == best_idx_2:
-                theta_2 = np.random.multivariate_normal(theta, self.Vinv)
-                best_idx_2 = np.argmax(self.X@theta_2)
-                x_2 = self.X[best_idx_2]
+                # draw k theta's and compute the best x at the same time to make it faster
+                theta_2_mat = np.random.multivariate_normal(mean=theta, 
+                                                      cov=self.Vinv, size=self.k)
+                max_x2_vec = np.argmax(self.X @ theta_2_mat.transpose(), axis=0)
+
+                if sum(max_x2_vec - best_idx) != 0: # if there is some index that is different
+                    # find the first place where they are different
+                    best_idx_2 = np.where(max_x2_vec != best_idx)[0][0] 
+            
+            x_2 = self.X[best_idx_2]
             self.toptwo.append([best_idx, best_idx_2])
             
 
@@ -64,7 +75,7 @@ class TopTwoAlgorithm(Linear):
             self.V += np.outer(x_n, x_n)
             self.Vinv = np.linalg.inv(self.V)
             S += x_n * y_n
-            theta = np.linalg.inv(self.V) @ S
+            theta = self.Vinv @ S
             self.theta = theta
             self.arms_chosen.append(np.argmax(self.X @ theta))
 
@@ -100,6 +111,7 @@ class XYAdaptive(Linear):
     def __init__(self, X, Y, theta_star, T, sigma, name):
         super().__init__(X, Y, theta_star, T, sigma, name)
         self.k = 5
+        self.Vinv = np.linalg.inv(self.V)
         #self.Y = compute_Y(X)
         # self.k = k #TODO: add this later
 
@@ -109,7 +121,7 @@ class XYAdaptive(Linear):
         theta = np.zeros(self.d)
         for t in range(self.T):
             theta_mat = np.random.multivariate_normal(mean=theta, 
-                                                      cov=self.V, size=self.k)
+                                                      cov=self.Vinv, size=self.k)
             max_x_vec = np.argmax(self.X @ theta_mat.transpose(), axis=0)  
             # this should be dimension k
             
@@ -125,8 +137,9 @@ class XYAdaptive(Linear):
             y_n = x_n @ self.theta_star + self.sigma * np.random.randn()
             
             self.V += np.outer(x_n, x_n)
+            self.Vinv = np.linalg.inv(self.V)
             S += x_n * y_n
-            theta = np.linalg.inv(self.V) @ S
+            theta = self.Vinv @ S
             self.arms_chosen.append(np.argmax(self.X @ theta))
             
             if t%logging_period == 0:
