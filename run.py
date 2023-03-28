@@ -1,17 +1,19 @@
+import sys
 import os
 os.environ['OMP_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 os.environ['MKL_NUM_THREADS'] = '1'
+import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import clear_output
 import multiprocessing as mp
+
 import library
 import argparse
 from instance import *
 import utils
-import pickle
 
 
     
@@ -41,15 +43,16 @@ if __name__=='__main__':
     parser.add_argument('--reps', type=int)
     parser.add_argument('--cpu', default=10, type=int)
     parser.add_argument('--parallelize', default='mp', type=str)
+    parser.add_argument('--path', default=os.getcwd(), type=str)
     args = parser.parse_args()
-    path = os.getcwd()
-    print('PATH', path)
     
 
     T = args.T  # time steps
     reps = args.reps  # repetitions of the algorithm
     cpu = args.cpu
-    
+    path = args.path
+    print('OUR PATH', path)
+
     d = 50
     X,theta_star = soare(d, alpha=.01)
     K = X.shape[0]
@@ -84,7 +87,7 @@ if __name__=='__main__':
     # pickle.dump(all_results, file)
     # file.close()
     # print(os.listdir('.'), os.getcwd())
-
+    
     xaxis = np.arange(T)
     for i,algorithm in enumerate(algorithms):
         results = np.array(all_results[reps*i: reps*(i+1)])
