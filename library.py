@@ -22,7 +22,7 @@ class ThompsonSampling(Linear):
             x_n = self.X[best_idx]
             y_n = x_n @ self.theta_star + self.sigma*np.random.randn()
             self.V += np.outer(x_n, x_n)
-            self.Vinv = np.linalg.inv(self.V)
+            self.Vinv = fast_rank_one(self.Vinv, x_n)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S
             self.arms_chosen.append(np.argmax(self.X @ theta))
@@ -36,8 +36,8 @@ class TopTwoAlgorithm(Linear):
         super().__init__(X, Y, theta_star, T, sigma, name)
         self.B = np.matmul(X.reshape(-1,self.d,1), X.reshape(-1,1,self.d))
         self.Vinv = np.linalg.inv(self.V)
-        self.toptwo = []
-        self.pulled = []
+        #self.toptwo = []
+        #self.pulled = []
         
     def run(self, logging_period=1):
         theta = np.zeros(self.d)
@@ -53,16 +53,16 @@ class TopTwoAlgorithm(Linear):
                 theta_2 = np.random.multivariate_normal(theta, self.Vinv)
                 best_idx_2 = np.argmax(self.X@theta_2)
                 x_2 = self.X[best_idx_2]
-            self.toptwo.append([best_idx, best_idx_2])
+            #self.toptwo.append([best_idx, best_idx_2])
             
 
             min_idx = np.argmin((x_1 - x_2) @ np.linalg.inv(self.V + self.B) @ (x_1 - x_2))
-            self.pulled.append(min_idx)
+            #self.pulled.append(min_idx)
             x_n = self.X[min_idx]
             y_n = self.theta_star @ x_n + self.sigma * np.random.randn()
 
             self.V += np.outer(x_n, x_n)
-            self.Vinv = np.linalg.inv(self.V)
+            self.Vinv = fast_rank_one(self.Vinv, x_n)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S
             self.theta = theta
@@ -109,7 +109,7 @@ class XYAdaptive(Linear):
         theta = np.zeros(self.d)
         for t in range(self.T):
             theta_mat = np.random.multivariate_normal(mean=theta, 
-                                                      cov=self.V, size=self.k)
+                                                      cov=np.linalg.inv(self.V), size=self.k)
             max_x_vec = np.argmax(self.X @ theta_mat.transpose(), axis=0)  
             # this should be dimension k
             

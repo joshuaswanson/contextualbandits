@@ -50,8 +50,8 @@ if __name__=='__main__':
     reps = args.reps  # repetitions of the algorithm
     cpu = args.cpu
     
-    d = 50
-    X,theta_star = soare(d, alpha=.01)
+    d = 20
+    X,theta_star = soare(d, alpha=.1)
     K = X.shape[0]
     idx_star = np.argmax(X @ theta_star)  # index of best arm
     Y = utils.compute_Y(X)
