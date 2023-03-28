@@ -45,7 +45,7 @@ class Gaussian(Distribution):
             self.theta = np.linalg.inv(self.V) @ self.S
     
     
-    def sample(self):
+    def sample(self, k):
         theta_tilde = np.random.multivariate_normal(self.theta, self.V)
         def f(x):
             return x @ theta_tilde
