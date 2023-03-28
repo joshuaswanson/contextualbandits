@@ -25,7 +25,7 @@ class ThompsonSampling(Linear):
             self.Vinv = fast_rank_one(self.Vinv, x_n)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S
-            self.arms_chosen.append(np.argmax(self.X @ theta))
+            self.arms_recommended.append(np.argmax(self.X @ theta))
             if t%logging_period == 0:
                 print('ts run', self.name, 'iter', t, "/", self.T, end="\r")
 
@@ -58,17 +58,18 @@ class TopTwoAlgorithm(Linear):
                 theta_2_mat = np.random.multivariate_normal(mean=theta, 
                                                       cov=self.Vinv, size=self.k)
                 max_x2_vec = np.argmax(self.X @ theta_2_mat.transpose(), axis=0)
-
-                if sum(max_x2_vec - best_idx) != 0: # if there is some index that is different
+                #print(max_x2_vec!=best_idx)
+                if any(max_x2_vec!=best_idx): # if there is some index that is different
                     # find the first place where they are different
-                    best_idx_2 = np.where(max_x2_vec != best_idx)[0][0] 
+                    #print(np.where(max_x2_vec != best_idx)[0])
+                    best_idx_2 = max_x2_vec[np.where(max_x2_vec != best_idx)[0][0]]
             
             x_2 = self.X[best_idx_2]
             self.toptwo.append([best_idx, best_idx_2])
             
 
             min_idx = np.argmin((x_1 - x_2) @ np.linalg.inv(self.V + self.B) @ (x_1 - x_2))
-            #self.pulled.append(min_idx)
+            self.pulled.append(min_idx)
             x_n = self.X[min_idx]
             y_n = self.theta_star @ x_n + self.sigma * np.random.randn()
 
@@ -77,7 +78,7 @@ class TopTwoAlgorithm(Linear):
             S += x_n * y_n
             theta = self.Vinv @ S
             self.theta = theta
-            self.arms_chosen.append(np.argmax(self.X @ theta))
+            self.arms_recommended.append(np.argmax(self.X @ theta))
 
             if t%logging_period == 0:
                 print('toptwo run', self.name, 'iter', t, "/", self.T, end="\r")
@@ -101,7 +102,7 @@ class XYStatic(Linear):
             self.V += np.outer(x_n, x_n)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S 
-            self.arms_chosen.append(np.argmax(self.X @ theta))        
+            self.arms_recommended.append(np.argmax(self.X @ theta))        
             if t%logging_period == 0:
                 print('xy static run', self.name, 'iter', t, "/", self.T, end="\r")
 
@@ -140,7 +141,7 @@ class XYAdaptive(Linear):
             self.Vinv = np.linalg.inv(self.V)
             S += x_n * y_n
             theta = self.Vinv @ S
-            self.arms_chosen.append(np.argmax(self.X @ theta))
+            self.arms_recommended.append(np.argmax(self.X @ theta))
             
             if t%logging_period == 0:
                 print('xy adaptive run', self.name, 'iter', t, "/", self.T, end="\r")

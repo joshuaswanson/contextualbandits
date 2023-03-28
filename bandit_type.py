@@ -14,4 +14,4 @@ class Linear():
         self.T = T  # time steps
         self.sigma = sigma
         self.name = name
-        self.arms_chosen = []
+        self.arms_recommended = []

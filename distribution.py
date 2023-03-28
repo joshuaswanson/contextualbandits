@@ -45,8 +45,17 @@ class Gaussian(Distribution):
             self.theta = np.linalg.inv(self.V) @ self.S
     
     
-    def sample(self, k):
-        theta_tilde = np.random.multivariate_normal(self.theta, self.V)
-        def f(x):
-            return x @ theta_tilde
-        return GenericFunction(f, self.sigma)
+    def sample(self, k=1):
+        if k==1:
+            theta_tilde = np.random.multivariate_normal(self.theta, self.V)
+        else:
+            theta_tilde = np.random.multivariate_normal(self.theta, self.V, size=k)
+        # def f(x):
+        #     return x @ theta_tilde
+        if k==1:
+            return GenericFunction(lambda x: x@theta_tilde, self.sigma)
+
+        return [GenericFunction(lambda x: x@theta.T, self.sigma) for theta in theta_tilde] 
+    
+    def map(self):
+        return GenericFunction(lambda x: x@self.theta, self.sigma)
