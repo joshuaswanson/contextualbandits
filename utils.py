@@ -70,3 +70,8 @@ def pi(self, theta, V, idx, repeat=10000):
         random_theta = np.random.multivariate_normal(theta, V)
         count += (idx == np.argmax(X@theta))
     return count / repeat
+
+
+def fast_rank_one(B,v):
+    x = B@v
+    return B - np.outer(x,x) / (1 + v.T @ B @ v)

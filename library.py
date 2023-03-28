@@ -22,7 +22,7 @@ class ThompsonSampling(Linear):
             x_n = self.X[best_idx]
             y_n = x_n @ self.theta_star + self.sigma*np.random.randn()
             self.V += np.outer(x_n, x_n)
-            self.Vinv = np.linalg.inv(self.V)
+            self.Vinv = fast_rank_one(self.Vinv, x_n)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S
             self.arms_chosen.append(np.argmax(self.X @ theta))
@@ -68,12 +68,12 @@ class TopTwoAlgorithm(Linear):
             
 
             min_idx = np.argmin((x_1 - x_2) @ np.linalg.inv(self.V + self.B) @ (x_1 - x_2))
-            self.pulled.append(min_idx)
+            #self.pulled.append(min_idx)
             x_n = self.X[min_idx]
             y_n = self.theta_star @ x_n + self.sigma * np.random.randn()
 
             self.V += np.outer(x_n, x_n)
-            self.Vinv = np.linalg.inv(self.V)
+            self.Vinv = fast_rank_one(self.Vinv, x_n)
             S += x_n * y_n
             theta = self.Vinv @ S
             self.theta = theta
