@@ -47,9 +47,9 @@ class Gaussian(Distribution):
     
     def sample(self, k=1):
         if k==1:
-            theta_tilde = np.random.multivariate_normal(self.theta, self.V)
+            theta_tilde = np.random.multivariate_normal(self.theta, np.linalg.inv(self.V))
         else:
-            theta_tilde = np.random.multivariate_normal(self.theta, self.V, size=k)
+            theta_tilde = np.random.multivariate_normal(self.theta, np.linalg.inv(self.V), size=k)
         # def f(x):
         #     return x @ theta_tilde
         if k==1:
