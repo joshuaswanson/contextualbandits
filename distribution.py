@@ -36,7 +36,7 @@ class Gaussian(Distribution):
     def update_posterior(self, x, y, copy=False):
         if copy:
             V = self.V + np.outer(x, x)
-            S = self.S + x * y
+            S = self.S + np.dot(x, y)
             theta = np.linalg.inv(V) @ S
             return Gaussian(theta, V, S)
         else:

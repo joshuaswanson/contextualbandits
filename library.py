@@ -53,6 +53,7 @@ class TopTwoAlgorithm(Linear):
             theta_2 = np.random.multivariate_normal(theta, self.Vinv)
             best_idx_2 = np.argmax(self.X@theta_2)
 
+            a = 0 
             while best_idx == best_idx_2:
                 # draw k theta's and compute the best x at the same time to make it faster
                 theta_2_mat = np.random.multivariate_normal(mean=theta, 
@@ -63,6 +64,11 @@ class TopTwoAlgorithm(Linear):
                     # find the first place where they are different
                     #print(np.where(max_x2_vec != best_idx)[0])
                     best_idx_2 = max_x2_vec[np.where(max_x2_vec != best_idx)[0][0]]
+                a+=1
+                if a > 10000:
+                    break
+            if a > 10000:
+                    break
             
             x_2 = self.X[best_idx_2]
             self.toptwo.append([best_idx, best_idx_2])
