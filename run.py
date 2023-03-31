@@ -27,15 +27,16 @@ def worker(algorithm, X, Y, theta_star, T, sigma, name):
             return library.TopTwoAlgorithm
         elif name == 'XYStatic':
             return library.XYStatic
+        elif name == 'General':
+            return library.General
         else:
             return library.XYAdaptive
     np.random.seed()
     algorithm = get_alg(algorithm)
     #Y = np.frombuffer(Y_buffer).reshape((X.shape[0]*(X.shape[0]-1)//2,X.shape[1]))
     algorithm_instance = algorithm(X, Y, theta_star, T, sigma, name)
-    algorithm_instance.run(logging_period=1000)
-    return algorithm_instance.arms_chosen
-
+    algorithm_instance.run(logging_period=100)
+    return algorithm_instance.arms_recommended
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
@@ -53,8 +54,8 @@ if __name__=='__main__':
     path = args.path
     print('OUR PATH', path)
 
-    d = 50
-    X,theta_star = soare(d, alpha=.01)
+    d = 20
+    X,theta_star = soare(d, alpha=.1)
     K = X.shape[0]
     idx_star = np.argmax(X @ theta_star)  # index of best arm
     Y = utils.compute_Y(X)
@@ -64,6 +65,7 @@ if __name__=='__main__':
         'ThompsonSampling',
         'TopTwoAlgorithm',
         'XYStatic',
+        'General'
         #'XYAdaptive'
     ]
      
@@ -90,7 +92,8 @@ if __name__=='__main__':
     
     xaxis = np.arange(T)
     for i,algorithm in enumerate(algorithms):
-        results = np.array(all_results[reps*i: reps*(i+1)])
+        results = all_results[reps*i: reps*(i+1)]
+        print([len(results[i]) for i in range(reps)])
         m = (results == idx_star).mean(axis=0)
         s = (results == idx_star).std(axis=0)/np.sqrt(reps)
         plt.plot(xaxis, m)
