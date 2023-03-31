@@ -173,7 +173,7 @@ class General(Linear):
         self.B = 20
         self.pulled = []
         self.name = name
-        self.delta=.001
+        self.delta=.0001
         
     def run(self, logging_period=1, k=10):
         for t in range(self.T):
