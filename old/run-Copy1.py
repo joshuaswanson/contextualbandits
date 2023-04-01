@@ -2,11 +2,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import clear_output
 import multiprocessing as mp
-import library
+import contextualbandits.library_concept as library_concept
 from importlib import reload
 import argparse
 
-reload(library)
+reload(library_concept)
 
 def worker(algorithm, X, theta_star, T, sigma, name):
     np.random.seed()
@@ -34,17 +34,17 @@ if __name__=='__main__':
     
     pool = mp.Pool(40)
     
-    algorithms = [library.TopTwoAlgorithm, library.ThompsonSampling, library.XYStatic, library.XYAdaptive]
+    algorithms = [library_concept.TopTwoAlgorithm, library_concept.ThompsonSampling, library_concept.XYStatic, library_concept.XYAdaptive]
     
     for algorithm in algorithms:
         args = [(algorithm, X, theta_star, T, 1, i) for i in range(reps)]
         results = pool.starmap(worker, args)
         m1 = (results == idx_star).mean(axis=0)
     
-    args1 = [(library.TopTwoAlgorithm, X, theta_star, T, 1, i) for i in range(reps)]
-    args2 = [(library.ThompsonSampling, X, theta_star, T, 1, i) for i in range(reps)]
-    args3 = [(library.XYStatic, X, theta_star, T, 1, i) for i in range(reps)]
-    args4 = [(library.XYAdaptive, X, theta_star, T, 1, i) for i in range(reps)]
+    args1 = [(library_concept.TopTwoAlgorithm, X, theta_star, T, 1, i) for i in range(reps)]
+    args2 = [(library_concept.ThompsonSampling, X, theta_star, T, 1, i) for i in range(reps)]
+    args3 = [(library_concept.XYStatic, X, theta_star, T, 1, i) for i in range(reps)]
+    args4 = [(library_concept.XYAdaptive, X, theta_star, T, 1, i) for i in range(reps)]
     
     results1 = pool.starmap(worker, args1)
     results2 = pool.starmap(worker, args2)

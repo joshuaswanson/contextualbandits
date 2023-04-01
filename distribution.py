@@ -1,11 +1,12 @@
 import numpy as np
+from catboost import CatBoostRegressor
 
 class Distribution:
     pass
 
 
 class GenericFunction():
-    def __init__(self, f, sigma):
+    def __init__(self, f, sigma=1):
         self.f = f
         self.sigma = sigma
 
@@ -14,6 +15,7 @@ class GenericFunction():
         Evaluate the function f at x and add random noise.
         """
         noise = np.random.randn(*x.shape[:-1], 1) * self.sigma
+        print(noise)
         return self.evaluate(x) + noise.squeeze(axis=-1)
 
     def evaluate(self, x):
@@ -64,3 +66,61 @@ class Gaussian(Distribution):
     
     def map(self):
         return GenericFunction(lambda x: x@self.theta, self.sigma)
+    
+
+
+class Kitten(Distribution):
+    def __init__(self, Xtrain, Ytrain, f, f_sigma):
+        super().__init__()
+        self.f_sigma = f_sigma
+        if f is not None:
+            self.f = f
+        else:
+            self.f = GenericFunction(lambda x: np.random.rand(x.shape[0]), self.f_sigma)
+        
+        self.Xtrain = Xtrain
+        self.Ytrain = Ytrain
+
+    def update_posterior(self, x, y, copy=False): 
+
+        if len(self.Xtrain) < 5:
+            self.Xtrain.append(x)
+            self.Ytrain.append(y)
+            return 
+        
+        f = CatBoostRegressor(iterations=10, depth=6,
+                              random_seed=np.random.randint(10000))
+        if copy:
+            Xtrain = self.Xtrain.copy()+[x]
+            Ytrain = self.Ytrain.copy()+[y]
+            f.fit(Xtrain, Ytrain)
+            f = GenericFunction(lambda x: f.predict(x), self.f_sigma)
+            return Kitten(Xtrain, Ytrain, f) 
+        else:
+            self.Xtrain.append(x)
+            self.Ytrain.append(y)
+            f.fit(self.Xtrain, self.Ytrain)
+            self.f = GenericFunction(lambda x: f.predict(x), self.f_sigma)
+            
+    
+    def sample(self, k=1):
+        effs = []
+        if  len(self.Xtrain) < 20:
+            effs = [GenericFunction(lambda x: np.random.rand(x.shape[0]), self.f_sigma) 
+                    for i in range(k)]
+
+        else:
+            for i in range(k):
+                f = CatBoostRegressor(posterior_sampling=True, 
+                                      iterations = 10, depth=6,
+                                      random_seed=np.random.randint(100000))
+                f_tilde = f.fit(self.Xtrain, self.Ytrain)
+                effs.append(GenericFunction(lambda x: f_tilde.predict(x), self.f_sigma))
+        
+        if k==1:
+            return effs[0]
+        return effs
+
+    def map(self):
+        # returns map estimate
+        return self.f

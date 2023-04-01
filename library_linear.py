@@ -161,8 +161,7 @@ class XYAdaptive(Linear):
 
 
 
-class General(Linear):
-    
+class GeneralTopTwo(Linear):
     def __init__(self, X, Y, gen_star, T, sigma, name):
         super().__init__(X, Y, gen_star, T, sigma, name)
         self.pi = Gaussian(np.zeros(self.d), self.V)
@@ -231,3 +230,4 @@ class General(Linear):
         if quit < self.T:
             for i in range(quit, self.T):
                 self.arms_recommended.append(rec)
+
