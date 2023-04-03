@@ -10,7 +10,7 @@ import numpy as np
 from IPython.display import clear_output
 import multiprocessing as mp
 
-import library
+import contextualbandits.library_concept as library_concept
 import argparse
 from instance import *
 import utils
@@ -22,15 +22,15 @@ def worker(algorithm, X, Y, theta_star, T, sigma, name):
     print('algorithm', algorithm, 'name', name)
     def get_alg(name):
         if name == 'ThompsonSampling':
-            return library.ThompsonSampling
+            return library_concept.ThompsonSampling
         elif name == 'TopTwoAlgorithm':
-            return library.TopTwoAlgorithm
+            return library_concept.TopTwoAlgorithm
         elif name == 'XYStatic':
-            return library.XYStatic
+            return library_concept.XYStatic
         elif name == 'General':
-            return library.General
+            return library_concept.General
         else:
-            return library.XYAdaptive
+            return library_concept.XYAdaptive
     np.random.seed()
     algorithm = get_alg(algorithm)
     #Y = np.frombuffer(Y_buffer).reshape((X.shape[0]*(X.shape[0]-1)//2,X.shape[1]))
