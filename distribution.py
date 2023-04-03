@@ -70,52 +70,58 @@ class Gaussian(Distribution):
 
 
 class Kitten(Distribution):
-    def __init__(self, Xtrain, Ytrain, f, f_sigma):
+    def __init__(self, Xtrain, Ytrain, f, sigma):
         super().__init__()
-        self.f_sigma = f_sigma
+        self.sigma = sigma
         if f is not None:
             self.f = f
         else:
-            self.f = GenericFunction(lambda x: np.random.rand(x.shape[0]), self.f_sigma)
+            self.f = GenericFunction(lambda x: np.random.rand(x.shape[0]), self.sigma)
         
         self.Xtrain = Xtrain
         self.Ytrain = Ytrain
 
     def update_posterior(self, x, y, copy=False): 
 
+        if x.ndim==1:
+            x=x[:,np.newaxis]
+            
         if len(self.Xtrain) < 5:
-            self.Xtrain.append(x)
-            self.Ytrain.append(y)
+            self.Xtrain = np.vstack((self.Xtrain,x))
+            self.Ytrain = np.concatenate((self.Ytrain,y))
             return 
         
-        f = CatBoostRegressor(iterations=10, depth=6,
-                              random_seed=np.random.randint(10000))
+        f = CatBoostRegressor(iterations = 100,
+                                      random_seed=np.random.randint(100000),
+                                      verbose=False)
         if copy:
-            Xtrain = self.Xtrain.copy()+[x]
-            Ytrain = self.Ytrain.copy()+[y]
+            Xtrain = np.vstack((self.Xtrain.copy(), x))
+            Ytrain = np.concatenate((self.Ytrain.copy(), y))
             f.fit(Xtrain, Ytrain)
-            f = GenericFunction(lambda x: f.predict(x), self.f_sigma)
+            f = GenericFunction(lambda x: f.predict(x), self.sigma)
             return Kitten(Xtrain, Ytrain, f) 
         else:
-            self.Xtrain.append(x)
-            self.Ytrain.append(y)
+            Xtrain = np.vstack((self.Xtrain, x))
+            Ytrain = np.concatenate((self.Ytrain, y))
             f.fit(self.Xtrain, self.Ytrain)
-            self.f = GenericFunction(lambda x: f.predict(x), self.f_sigma)
+            self.f = GenericFunction(lambda x: f.predict(x), self.sigma)
             
     
     def sample(self, k=1):
         effs = []
-        if  len(self.Xtrain) < 20:
-            effs = [GenericFunction(lambda x: np.random.rand(x.shape[0]), self.f_sigma) 
+        if  len(self.Xtrain) < 5:
+            effs = [GenericFunction(lambda x: self.sigma*np.random.rand(x.shape[0]), self.sigma) 
                     for i in range(k)]
 
         else:
-            for i in range(k):
-                f = CatBoostRegressor(posterior_sampling=True, 
-                                      iterations = 10, depth=6,
-                                      random_seed=np.random.randint(100000))
-                f_tilde = f.fit(self.Xtrain, self.Ytrain)
-                effs.append(GenericFunction(lambda x: f_tilde.predict(x), self.f_sigma))
+            for i in range(k):        
+                model = CatBoostRegressor(iterations = 100,
+                                      random_seed=np.random.randint(100000),
+                                      verbose=False)
+                n = len(self.Xtrain)
+                idx = np.random.choice(n,n)
+                f_tilde = model.fit(self.Xtrain[idx], self.Ytrain[idx]+np.random.randn(n)*self.sigma)
+                effs.append(GenericFunction(lambda x: f_tilde.predict(x), self.sigma))
         
         if k==1:
             return effs[0]
