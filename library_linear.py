@@ -4,6 +4,7 @@ from IPython.display import clear_output
 import multiprocessing as mp
 from bandit_type import Linear
 from utils import *
+import utils
 from distribution import *
 
 class ThompsonSampling(Linear):
@@ -23,7 +24,7 @@ class ThompsonSampling(Linear):
             x_n = self.X[best_idx]
             y_n = x_n @ self.theta_star + self.sigma*np.random.randn()
             self.V += np.outer(x_n, x_n)
-            self.Vinv = fast_rank_one(self.Vinv, x_n)
+            self.Vinv = utils.fast_rank_one(self.Vinv, x_n)
             S += x_n * y_n
             theta = np.linalg.inv(self.V) @ S
             self.arms_recommended.append(np.argmax(self.X @ theta))
@@ -81,7 +82,7 @@ class TopTwoAlgorithm(Linear):
             y_n = self.theta_star @ x_n + self.sigma * np.random.randn()
 
             self.V += np.outer(x_n, x_n)
-            self.Vinv = fast_rank_one(self.Vinv, x_n)
+            self.Vinv = utils.fast_rank_one(self.Vinv, x_n)
             S += x_n * y_n
             theta = self.Vinv @ S
             self.theta = theta
@@ -161,7 +162,7 @@ class XYAdaptive(Linear):
 
 
 
-class GeneralTopTwo(Linear):
+class GeneralTopTwoLinear(Linear):
     def __init__(self, X, Y, gen_star, T, sigma, name):
         super().__init__(X, Y, gen_star, T, sigma, name)
         self.pi = Gaussian(np.zeros(self.d), self.V)

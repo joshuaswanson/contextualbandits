@@ -1,4 +1,5 @@
 import numpy as np
+import distribution
 
 def sphere(K, d):
     '''
@@ -30,3 +31,17 @@ def soare(d, alpha):
     x_prime = np.cos(alpha) * e_1 + np.sin(alpha) * e_2
     X = np.concatenate([X, np.array([x_prime])])
     return X, 2 * e_1
+
+
+def entropy(K):
+    f_star = distribution.GenericFunction(lambda x: -x*np.log(x) - (1-x)*np.log(1-x), .1)
+    return np.random.rand(K).reshape(-1,1), f_star
+
+def get_instance(name, params):
+    if name=='soare':
+        f = soare
+    elif name=='sphere':
+        f = sphere
+    elif name=='entropy':
+        f = entropy
+    return f(**params)

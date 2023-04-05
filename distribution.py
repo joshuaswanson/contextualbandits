@@ -1,6 +1,14 @@
 import numpy as np
 from catboost import CatBoostRegressor
 
+def get_distribution(dist):
+    if dist['name'] == 'Kitten':
+        return Kitten(np.empty((0,dist['d'])), np.empty((0)), None)
+    elif dist['name'] == 'Gaussian':
+        d = dist['d']
+        return Gaussian(np.zeros(d), np.eye(d))
+
+
 class Distribution:
     pass
 
@@ -15,14 +23,17 @@ class GenericFunction():
         Evaluate the function f at x and add random noise.
         """
         noise = np.random.randn(*x.shape[:-1], 1) * self.sigma
-        print(noise)
         return self.evaluate(x) + noise.squeeze(axis=-1)
 
     def evaluate(self, x):
         """
         Evaluate the function f at x.
         """
-        return self.f(x)
+        y = self.f(x)
+        if type(y) is list or type(y) is np.ndarray:
+            if len(y) == 1:
+                y = y[0]
+        return y
 
 
 
@@ -70,7 +81,7 @@ class Gaussian(Distribution):
 
 
 class Kitten(Distribution):
-    def __init__(self, Xtrain, Ytrain, f, sigma):
+    def __init__(self, Xtrain, Ytrain, f, sigma=.5):
         super().__init__()
         self.sigma = sigma
         if f is not None:
@@ -85,39 +96,42 @@ class Kitten(Distribution):
 
         if x.ndim==1:
             x=x[:,np.newaxis]
-            
-        if len(self.Xtrain) < 5:
-            self.Xtrain = np.vstack((self.Xtrain,x))
-            self.Ytrain = np.concatenate((self.Ytrain,y))
-            return 
-        
-        f = CatBoostRegressor(iterations = 100,
-                                      random_seed=np.random.randint(100000),
-                                      verbose=False)
+    
+        f = CatBoostRegressor(iterations = 20,
+                              random_seed=np.random.randint(100000),
+                              verbose=False)
         if copy:
-            Xtrain = np.vstack((self.Xtrain.copy(), x))
-            Ytrain = np.concatenate((self.Ytrain.copy(), y))
-            f.fit(Xtrain, Ytrain)
-            f = GenericFunction(lambda x: f.predict(x), self.sigma)
+            Xtrain = np.concatenate((self.Xtrain, x))
+            Ytrain = np.concatenate((self.Ytrain, y))
+            if self.Xtrain.shape[0] < 10:
+                f = GenericFunction(lambda x: self.sigma*np.random.rand(x.shape[0]), 
+                                    self.sigma) 
+                return Kitten(Xtrain, Ytrain, f) 
+            else:
+                f.fit(Xtrain, Ytrain)
+                f = GenericFunction(lambda x: f.predict(x), self.sigma)
             return Kitten(Xtrain, Ytrain, f) 
         else:
-            Xtrain = np.vstack((self.Xtrain, x))
-            Ytrain = np.concatenate((self.Ytrain, y))
+            self.Xtrain = np.concatenate((self.Xtrain, x))
+            self.Ytrain = np.concatenate((self.Ytrain, y))
+            if self.Xtrain.shape[0] < 10:
+                return
             f.fit(self.Xtrain, self.Ytrain)
             self.f = GenericFunction(lambda x: f.predict(x), self.sigma)
             
     
     def sample(self, k=1):
-        effs = []
-        if  len(self.Xtrain) < 5:
-            effs = [GenericFunction(lambda x: self.sigma*np.random.rand(x.shape[0]), self.sigma) 
+        if  self.Xtrain.shape[0] < 10:
+            effs = [GenericFunction(lambda x: self.sigma*np.random.rand(x.shape[0]), 
+                                    self.sigma) 
                     for i in range(k)]
 
         else:
+            effs = []
             for i in range(k):        
-                model = CatBoostRegressor(iterations = 100,
-                                      random_seed=np.random.randint(100000),
-                                      verbose=False)
+                model = CatBoostRegressor(iterations = 20,
+                                          random_seed=np.random.randint(100000),
+                                          verbose=False)
                 n = len(self.Xtrain)
                 idx = np.random.choice(n,n)
                 f_tilde = model.fit(self.Xtrain[idx], self.Ytrain[idx]+np.random.randn(n)*self.sigma)
